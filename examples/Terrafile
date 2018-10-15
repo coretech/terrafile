@@ -1,0 +1,6 @@
+tf-aws-vpc:
+    source:  "git@github.com:terraform-aws-modules/terraform-aws-vpc"
+    version: "v1.46.0"
+tf-aws-vpc-experimental:
+    source:  "git@github.com:terraform-aws-modules/terraform-aws-vpc"
+    version: "master"
