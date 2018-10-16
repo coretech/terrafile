@@ -28,7 +28,7 @@ func TestTerraformWithTerrafilePath(t *testing.T) {
 	testcli.Run(terrafileBinaryPath, "-f", folder)
 
 	if !testcli.Success() {
-		t.Fatalf("Expected to succeed, but failed: %s", testcli.Error())
+		t.Fatalf("Expected to succeed, but failed: %q with message: %q", testcli.Error(), testcli.Stderr())
 	}
 	// Assert output
 	for _, output := range []string{
@@ -67,5 +67,5 @@ tf-aws-vpc-experimental:
   source:  "git@github.com:terraform-aws-modules/terraform-aws-vpc"
   version: "master"
 `
-	createFile(t, path.Join(folder, "terrafile"), yaml)
+	createFile(t, path.Join(folder, "Terrafile"), yaml)
 }
