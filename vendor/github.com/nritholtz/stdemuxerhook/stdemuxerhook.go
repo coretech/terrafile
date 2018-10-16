@@ -1,10 +1,11 @@
 package stdemuxerhook
 
 import (
-	"github.com/Sirupsen/logrus"
 	"io"
 	"io/ioutil"
 	"os"
+
+	"github.com/sirupsen/logrus"
 )
 
 // StdDemuxerHook demuxes logs to io.Writers based on

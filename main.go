@@ -6,9 +6,9 @@ import (
 	"os"
 	"os/exec"
 
-	log "github.com/Sirupsen/logrus"
-	"github.com/janeczku/stdemuxerhook"
 	"github.com/jessevdk/go-flags"
+	"github.com/nritholtz/stdemuxerhook"
+	log "github.com/sirupsen/logrus"
 	"gopkg.in/yaml.v2"
 )
 

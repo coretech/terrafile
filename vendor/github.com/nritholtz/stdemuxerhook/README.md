@@ -1,6 +1,6 @@
 # A stdout/stderr demuxer hook for Logrus
 
-[Logrus](https://github.com/Sirupsen/logrus) loggers always output all log levels to a single common output, e.g. `stderr`. 
+[Logrus](https://github.com/sirupsen/logrus) loggers always output all log levels to a single common output, e.g. `stderr`. 
 This logrus hook makes it so that logs with a severity below `Error` are written to `stdout` while all the important stuff goes to `stderr`.
 
 You can also use the hook to demux logs to custom IO writers based on severity. Just override the default outputs using the hook's `SetOutput(infoLevel, errorLevel io.Writer)` method.
@@ -11,7 +11,7 @@ Given you have an application that uses a the logrus standard logger similar to 
 
 ```go
 import (
-    log "github.com/Sirupsen/logrus"
+    log "github.com/sirupsen/logrus"
 )
 
 func main() {
@@ -28,7 +28,7 @@ The only change required is adding in the hook. Make sure to configure the paren
 
 ```go
 import (
-    log "github.com/Sirupsen/logrus"
+    log "github.com/sirupsen/logrus"
     "github.com/janeczku/stdemuxerhook"
 )
 
