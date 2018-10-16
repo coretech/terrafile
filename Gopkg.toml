@@ -38,5 +38,12 @@
   version = "1.4.0"
 
 [[constraint]]
-  name = "github.com/sirupsen/logrus"
-  version = "1.1.1"
+  branch = "master"
+  name = "github.com/rendon/testcli"
+
+[[constraint]]
+  name = "github.com/stretchr/testify"
+  version = "1.2.2"
+[[constraint]]
+  branch = "master"
+  name = "github.com/janeczku/stdemuxerhook"

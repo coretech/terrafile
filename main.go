@@ -6,8 +6,9 @@ import (
 	"os"
 	"os/exec"
 
+	log "github.com/Sirupsen/logrus"
+	"github.com/janeczku/stdemuxerhook"
 	"github.com/jessevdk/go-flags"
-	log "github.com/sirupsen/logrus"
 	"gopkg.in/yaml.v2"
 )
 
@@ -19,16 +20,18 @@ type module struct {
 var opts struct {
 	ModulePath string `short:"p" long:"module_path" default:"./vendor/modules" description:"File path to install generated terraform modules"`
 
-	TerrrafilePath string `short:"f" long:"terrafile_file" default:"." description:"File path in which the Terrafile file is located"`
+	TerrafilePath string `short:"f" long:"terrafile_file" default:"." description:"File path in which the Terrafile file is located"`
 }
 
-// ModulePath File path in which the modules will be exported
-const ModulePath = "vendor/modules"
+func init() {
+	// Needed to redirect logrus to proper stream STDOUT vs STDERR
+	log.AddHook(stdemuxerhook.New(log.StandardLogger()))
+}
 
 func gitClone(repository string, version string, moduleName string) {
 	log.Printf("[*] Checking out %s of %s \n", version, repository)
 	cmd := exec.Command("git", "clone", "-b", version, repository, moduleName)
-	cmd.Dir = ModulePath
+	cmd.Dir = opts.ModulePath
 	err := cmd.Run()
 	if err != nil {
 		log.Fatalln(err)
@@ -44,7 +47,7 @@ func main() {
 	}
 
 	// Read File
-	yamlFile, err := ioutil.ReadFile(fmt.Sprint(opts.TerrrafilePath, "/Terrafile"))
+	yamlFile, err := ioutil.ReadFile(fmt.Sprint(opts.TerrafilePath, "/Terrafile"))
 	if err != nil {
 		log.Fatalln(err)
 	}

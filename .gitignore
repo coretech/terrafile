@@ -13,4 +13,4 @@
 
 # Terrafile output
 vendor/modules
-test
+terrafile
