@@ -23,6 +23,13 @@ var opts struct {
 	TerrafilePath string `short:"f" long:"terrafile_file" default:"." description:"File path in which the Terrafile file is located"`
 }
 
+// To be set by goreleaser on build
+var (
+	version = "dev"
+	commit  = "none"
+	date    = "unknown"
+)
+
 func init() {
 	// Needed to redirect logrus to proper stream STDOUT vs STDERR
 	log.AddHook(stdemuxerhook.New(log.StandardLogger()))
@@ -39,6 +46,7 @@ func gitClone(repository string, version string, moduleName string) {
 }
 
 func main() {
+	log.Printf("Terraform: version %v, commit %v, built at %v", version, commit, date)
 	_, err := flags.Parse(&opts)
 
 	// Invalid choice

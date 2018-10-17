@@ -24,6 +24,8 @@ brew tap coretech/terrafile && brew install terrafile
 
 ### Linux
 Download your preferred flavor from the [releases](https://github.com/coretech/terrafile/releases/latest) page and install manually.
+
+For example:
 ```sh
 curl -L https://github.com/coretech/terrafile/releases/download/v0.2/terrafile_0.2_linux_amd64.tar.gz | tar xz -C /usr/local/bin
 ```
