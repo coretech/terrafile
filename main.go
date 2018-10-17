@@ -20,7 +20,7 @@ type module struct {
 var opts struct {
 	ModulePath string `short:"p" long:"module_path" default:"./vendor/modules" description:"File path to install generated terraform modules"`
 
-	TerrafilePath string `short:"f" long:"terrafile_file" default:"." description:"File path in which the Terrafile file is located"`
+	TerrafilePath string `short:"f" long:"terrafile_file" default:"./Terrafile" description:"File path to the Terrafile file"`
 }
 
 // To be set by goreleaser on build
@@ -46,7 +46,7 @@ func gitClone(repository string, version string, moduleName string) {
 }
 
 func main() {
-	log.Printf("Terraform: version %v, commit %v, built at %v", version, commit, date)
+	fmt.Printf("Terrafile: version %v, commit %v, built at %v \n", version, commit, date)
 	_, err := flags.Parse(&opts)
 
 	// Invalid choice
@@ -55,7 +55,7 @@ func main() {
 	}
 
 	// Read File
-	yamlFile, err := ioutil.ReadFile(fmt.Sprint(opts.TerrafilePath, "/Terrafile"))
+	yamlFile, err := ioutil.ReadFile(opts.TerrafilePath)
 	if err != nil {
 		log.Fatalln(err)
 	}

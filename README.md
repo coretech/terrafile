@@ -40,7 +40,7 @@ INFO[0000] [*] Checking out master of git@github.com:terraform-aws-modules/terra
 
 Terrafile config file in custom directory
 ```sh
-$ terrafile -f config/
+$ terrafile -f config/Terrafile
 INFO[0000] [*] Checking out v1.46.0 of git@github.com:terraform-aws-modules/terraform-aws-vpc  
 INFO[0000] [*] Checking out master of git@github.com:terraform-aws-modules/terraform-aws-vpc  
 ```
@@ -51,3 +51,9 @@ $ terrafile -p custom_directory
 INFO[0000] [*] Checking out master of git@github.com:terraform-aws-modules/terraform-aws-vpc  
 INFO[0001] [*] Checking out v1.46.0 of git@github.com:terraform-aws-modules/terraform-aws-vpc  
 ```
+
+## TODO
+* Break out the main logic into seperate commands (e.g. version, help, run)
+* Update tests to include unit tests for broken out commands
+* Add coverage tool and badge
+* May be worth renaming Terrafile config file to something that won't be misinterpreted as the binary

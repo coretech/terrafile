@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"io/ioutil"
 	"os"
 	"path"
@@ -25,7 +26,7 @@ func TestTerraformWithTerrafilePath(t *testing.T) {
 	folder, back := setup(t)
 	defer back()
 
-	testcli.Run(terrafileBinaryPath, "-f", folder)
+	testcli.Run(terrafileBinaryPath, "-f", fmt.Sprint(folder, "/terrafile"))
 
 	if !testcli.Success() {
 		t.Fatalf("Expected to succeed, but failed: %q with message: %q", testcli.Error(), testcli.Stderr())
