@@ -27,3 +27,26 @@ Download your preferred flavor from the [releases](https://github.com/coretech/t
 ```sh
 curl -L https://github.com/coretech/terrafile/releases/download/v0.2/terrafile_0.2_linux_amd64.tar.gz | tar xz -C /usr/local/bin
 ```
+
+## How to use
+
+Terrafile config in current directory and modules exported to ./vendor/modules
+```sh
+$ terrafile
+INFO[0000] [*] Checking out v1.46.0 of git@github.com:terraform-aws-modules/terraform-aws-vpc  
+INFO[0000] [*] Checking out master of git@github.com:terraform-aws-modules/terraform-aws-vpc  
+```
+
+Terrafile config in custom location
+```sh
+$ terrafile -f config/
+INFO[0000] [*] Checking out v1.46.0 of git@github.com:terraform-aws-modules/terraform-aws-vpc  
+INFO[0000] [*] Checking out master of git@github.com:terraform-aws-modules/terraform-aws-vpc  
+```
+
+Terraform modules exported to custom location
+```sh
+$ terrafile -p custom_directory
+INFO[0000] [*] Checking out master of git@github.com:terraform-aws-modules/terraform-aws-vpc  
+INFO[0001] [*] Checking out v1.46.0 of git@github.com:terraform-aws-modules/terraform-aws-vpc  
+```
