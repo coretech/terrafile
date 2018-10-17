@@ -1,3 +1,19 @@
+archive:
+  # Replacements for GOOS and GOARCH in the archive name.
+  # Keys should be valid GOOSs or GOARCHs.
+  # Values are the respective replacements.
+  # Default is empty.
+  replacements:
+    darwin: Darwin
+    linux: Linux
+    386: i386
+    amd64: x86_64
+
+  # Additional files/globs you want to add to the archive.
+  # Defaults are any files matching `LICENCE*`, `LICENSE*`,
+  # `README*` and `CHANGELOG*` (case-insensitive).
+  files:
+    - None
 brew:
   # Repository to push the tap to.
   github:
@@ -21,13 +37,12 @@ brew:
   # Your app's description.
   # Default is empty.
   description: "Systematically manage external modules from Github for use in Terraform."
-
-  # # Packages your package depends on.
-  # dependencies:
-  #   - git
-  #   - zsh
-
-  # # Packages that conflict with your package.
-  # conflicts:
-  #   - svn
-  #   - bash
+changelog:
+  sort: asc
+  filters:
+    exclude:
+    - '^docs:'
+    - '^test:'
+    - '^Update README'
+    - Merge pull request
+    - Merge branch
