@@ -1,0 +1,33 @@
+brew:
+  # Repository to push the tap to.
+  github:
+    owner: coretech
+    name: homebrew-terrafile
+
+  # Git author used to commit to the repository.
+  # Defaults are shown.
+  commit_author:
+    name: csijira
+    email: nathaniel.ritholtz@idt.net
+
+  # Folder inside the repository to put the formula.
+  # Default is the root folder.
+  folder: Formula
+  
+  # Your app's homepage.
+  # Default is empty.
+  homepage: "https://github.com/coretech/terrafile"
+
+  # Your app's description.
+  # Default is empty.
+  description: "Systematically manage external modules from Github for use in Terraform."
+
+  # # Packages your package depends on.
+  # dependencies:
+  #   - git
+  #   - zsh
+
+  # # Packages that conflict with your package.
+  # conflicts:
+  #   - svn
+  #   - bash
