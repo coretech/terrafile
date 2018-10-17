@@ -27,7 +27,7 @@ Download your preferred flavor from the [releases](https://github.com/coretech/t
 
 For example:
 ```sh
-curl -L https://github.com/coretech/terrafile/releases/download/v0.2/terrafile_0.2_linux_amd64.tar.gz | tar xz -C /usr/local/bin
+curl -L https://github.com/coretech/terrafile/releases/download/v0.3/terrafile_0.3_Linux_x86_64.tar.gz | tar xz -C /usr/local/bin
 ```
 
 ## How to use
