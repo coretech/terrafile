@@ -13,7 +13,7 @@ archive:
   # Defaults are any files matching `LICENCE*`, `LICENSE*`,
   # `README*` and `CHANGELOG*` (case-insensitive).
   files:
-    - None
+    - none*
 brew:
   # Repository to push the tap to.
   github:
