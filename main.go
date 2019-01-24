@@ -15,6 +15,7 @@ import (
 type module struct {
 	Source  string `yaml:"source"`
 	Version string `yaml:"version"`
+	Commit  string `yaml:"commit"`
 }
 
 var opts struct {
@@ -36,13 +37,30 @@ func init() {
 }
 
 func gitClone(repository string, version string, moduleName string) {
-	log.Printf("[*] Checking out %s of %s \n", version, repository)
 	cmd := exec.Command("git", "clone", "-b", version, repository, moduleName)
 	cmd.Dir = opts.ModulePath
 	err := cmd.Run()
 	if err != nil {
 		log.Fatalln(err)
 	}
+}
+
+func gitCheckout(commit string, moduleName string) {
+	cmd := exec.Command("git", "checkout", commit)
+	cmd.Dir = opts.ModulePath + "/" + moduleName
+	err := cmd.Run()
+	if err != nil {
+		log.Fatalln(err)
+	}
+}
+
+func logFetch(repository string, version string, commit string, moduleName string) {
+	var moduleVersion string
+	moduleVersion = version
+	if commit != "" {
+		moduleVersion = commit
+	}
+	log.Printf("[%s] Checking out %s of %s", moduleName, moduleVersion, repository)
 }
 
 func main() {
@@ -70,6 +88,14 @@ func main() {
 	os.RemoveAll(opts.ModulePath)
 	os.MkdirAll(opts.ModulePath, os.ModePerm)
 	for key, module := range config {
+		if len(module.Version) == 0 {
+			module.Version = "master"
+		}
+		logFetch(module.Source, module.Version, module.Commit, key)
 		gitClone(module.Source, module.Version, key)
+		// Checkout a commit if specified
+		if module.Commit != "" {
+			gitCheckout(module.Commit, key)
+		}
 	}
 }

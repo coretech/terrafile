@@ -33,8 +33,10 @@ func TestTerraformWithTerrafilePath(t *testing.T) {
 	}
 	// Assert output
 	for _, output := range []string{
-		"Checking out v1.46.0 of git@github.com:terraform-aws-modules/terraform-aws-vpc",
-		"Checking out master of git@github.com:terraform-aws-modules/terraform-aws-vpc",
+		"[tf-aws-vpc] Checking out v1.46.0 of git@github.com:terraform-aws-modules/terraform-aws-vpc",
+		"[tf-aws-vpc-experimental] Checking out master of git@github.com:terraform-aws-modules/terraform-aws-vpc",
+		"[tf-aws-vpc-commit] Checking out 01601169c00c68f37d5df8a80cc17c88f02c04d0 of git@github.com:terraform-aws-modules/terraform-aws-vpc",
+		"[tf-aws-vpc-default] Checking out master of git@github.com:terraform-aws-modules/terraform-aws-vpc",
 	} {
 		assert.Contains(t, testcli.Stdout(), output)
 	}
@@ -42,6 +44,8 @@ func TestTerraformWithTerrafilePath(t *testing.T) {
 	for _, moduleName := range []string{
 		"tf-aws-vpc",
 		"tf-aws-vpc-experimental",
+		"tf-aws-vpc-commit",
+		"tf-aws-vpc-default",
 	} {
 		assert.DirExists(t, path.Join(workingDirectory, "vendor/modules", moduleName))
 	}
@@ -67,6 +71,11 @@ func createTerrafile(t *testing.T, folder string) {
 tf-aws-vpc-experimental:
   source:  "git@github.com:terraform-aws-modules/terraform-aws-vpc"
   version: "master"
+tf-aws-vpc-commit:
+  source:  "git@github.com:terraform-aws-modules/terraform-aws-vpc"
+  commit: "01601169c00c68f37d5df8a80cc17c88f02c04d0"
+tf-aws-vpc-default:
+  source:  "git@github.com:terraform-aws-modules/terraform-aws-vpc"
 `
 	createFile(t, path.Join(folder, "Terrafile"), yaml)
 }
