@@ -46,6 +46,7 @@ func TestTerraformWithTerrafilePath(t *testing.T) {
 		"tf-aws-vpc-experimental",
 		"tf-aws-vpc-commit",
 		"tf-aws-vpc-default",
+		"tf-aws-vpc-path",
 	} {
 		assert.DirExists(t, path.Join(workingDirectory, "vendor/modules", moduleName))
 	}
@@ -76,6 +77,10 @@ tf-aws-vpc-commit:
   commit: "01601169c00c68f37d5df8a80cc17c88f02c04d0"
 tf-aws-vpc-default:
   source:  "git@github.com:terraform-aws-modules/terraform-aws-vpc"
+tf-aws-vpc-path:
+  source:  "git@github.com:terraform-aws-modules/terraform-aws-vpc"
+  path: "examples/simple-vpc"
+  version: "master"
 `
 	createFile(t, path.Join(folder, "Terrafile"), yaml)
 }

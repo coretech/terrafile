@@ -2,9 +2,11 @@ package main
 
 import (
 	"fmt"
+	"io"
 	"io/ioutil"
 	"os"
 	"os/exec"
+	"strings"
 
 	"github.com/jessevdk/go-flags"
 	"github.com/nritholtz/stdemuxerhook"
@@ -16,6 +18,7 @@ type module struct {
 	Source  string `yaml:"source"`
 	Version string `yaml:"version"`
 	Commit  string `yaml:"commit"`
+	Path    string `yaml:"path"`
 }
 
 var opts struct {
@@ -45,7 +48,39 @@ func gitClone(repository string, version string, moduleName string) {
 	}
 }
 
-func gitCheckout(commit string, moduleName string) {
+func gitClonePath(repository string, path string, version string, moduleName string) {
+  moduleDir := opts.ModulePath + "/" + moduleName
+
+	os.MkdirAll(moduleDir + "/.git/info", os.ModePerm)
+	fh, err := os.Create(moduleDir + "/.git/info/sparse-checkout")
+	if err != nil {
+		log.Fatalln(err)
+	}
+	defer fh.Close()
+	_, err = io.Copy(fh, strings.NewReader(path))
+	if err != nil {
+		log.Fatalln(err)
+	}
+
+	for _, command := range []string{
+		"git init . ",
+		fmt.Sprintf("git remote add origin %s", repository),
+		"git config core.sparsecheckout true",
+		fmt.Sprintf("git pull origin %s", version),
+	} {
+		c := strings.Fields(command)[0]
+		a := strings.Fields(command)[1:]
+
+		cmd := exec.Command(c, a...)
+		cmd.Dir = moduleDir
+		err:= cmd.Run()
+		if err != nil {
+			log.Fatalln(err)
+		}
+	}
+}
+
+func gitCheckoutCommit(commit string, moduleName string) {
 	cmd := exec.Command("git", "checkout", commit)
 	cmd.Dir = opts.ModulePath + "/" + moduleName
 	err := cmd.Run()
@@ -92,10 +127,16 @@ func main() {
 			module.Version = "master"
 		}
 		logFetch(module.Source, module.Version, module.Commit, key)
-		gitClone(module.Source, module.Version, key)
+
+		// Checkout path or sparse checkout specified path
+		if module.Path == "" {
+		  gitClone(module.Source, module.Version, key)
+		} else {
+			gitClonePath(module.Source, module.Path, module.Version, key)
+		}
 		// Checkout a commit if specified
 		if module.Commit != "" {
-			gitCheckout(module.Commit, key)
+			gitCheckoutCommit(module.Commit, key)
 		}
 	}
 }
