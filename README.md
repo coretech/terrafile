@@ -19,7 +19,7 @@ curl -L https://github.com/coretech/terrafile/releases/download/v{VERSION}/terra
 ```
 
 ## How to use
-Terrafile expects a file named `Terrafile` which will contain your terraform module dependencies in a yaml like format.
+Terrafile expects a file named `Terrafile` which will contain your terraform module dependencies in a yaml format.
 
 An example Terrafile:
 ```
@@ -29,6 +29,29 @@ tf-aws-vpc:
 tf-aws-vpc-experimental:
     source:  "git@github.com:terraform-aws-modules/terraform-aws-vpc"
     version: "master"
+tf-aws-vpc-default:
+    source:  "git@github.com:terraform-aws-modules/terraform-aws-vpc"
+tf-aws-vpc-commit:
+    source:  "git@github.com:terraform-aws-modules/terraform-aws-vpc"
+    commit: "01601169c00c68f37d5df8a80cc17c88f02c04d0"
+tf-aws-vpc-path:
+    source:  "git@github.com:terraform-aws-modules/terraform-aws-vpc"
+    path: "examples/simple-vpc"
+```
+By default, Terrafile will checkout the master branch of a module.
+
+To checkout a tag or branch use the `version` key:
+```
+tf-aws-vpc:
+    source:  "git@github.com:terraform-aws-modules/terraform-aws-vpc"
+    version: "v1.46.0"
+```
+
+To pin a module to a specific commit, use the `commit` key:
+```
+tf-aws-vpc-commit:
+    source:  "git@github.com:terraform-aws-modules/terraform-aws-vpc"
+    commit: "01601169c00c68f37d5df8a80cc17c88f02c04d0"
 ```
 
 Terrafile config file in current directory and modules exported to ./vendor/modules
