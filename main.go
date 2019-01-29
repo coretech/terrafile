@@ -49,9 +49,9 @@ func gitClone(repository string, version string, moduleName string) {
 }
 
 func gitClonePath(repository string, path string, version string, moduleName string) {
-  moduleDir := opts.ModulePath + "/" + moduleName
+	moduleDir := opts.ModulePath + "/" + moduleName
 
-	os.MkdirAll(moduleDir + "/.git/info", os.ModePerm)
+	os.MkdirAll(moduleDir+"/.git/info", os.ModePerm)
 	fh, err := os.Create(moduleDir + "/.git/info/sparse-checkout")
 	if err != nil {
 		log.Fatalln(err)
@@ -73,7 +73,7 @@ func gitClonePath(repository string, path string, version string, moduleName str
 
 		cmd := exec.Command(c, a...)
 		cmd.Dir = moduleDir
-		err:= cmd.Run()
+		err := cmd.Run()
 		if err != nil {
 			log.Fatalln(err)
 		}
@@ -89,13 +89,18 @@ func gitCheckoutCommit(commit string, moduleName string) {
 	}
 }
 
-func logFetch(repository string, version string, commit string, moduleName string) {
+func logFetch(repository string, version string, commit string, path string, moduleName string) {
 	var moduleVersion string
+	var pathFrom string
 	moduleVersion = version
+	pathFrom = ""
 	if commit != "" {
 		moduleVersion = commit
 	}
-	log.Printf("[%s] Checking out %s of %s", moduleName, moduleVersion, repository)
+	if path != "" {
+		pathFrom = fmt.Sprintf("%s from ", path)
+	}
+	log.Printf("[%s] Checking out %s%s of %s", moduleName, pathFrom, moduleVersion, repository)
 }
 
 func main() {
@@ -126,11 +131,11 @@ func main() {
 		if len(module.Version) == 0 {
 			module.Version = "master"
 		}
-		logFetch(module.Source, module.Version, module.Commit, key)
+		logFetch(module.Source, module.Version, module.Commit, module.Path, key)
 
 		// Checkout path or sparse checkout specified path
 		if module.Path == "" {
-		  gitClone(module.Source, module.Version, key)
+			gitClone(module.Source, module.Version, key)
 		} else {
 			gitClonePath(module.Source, module.Path, module.Version, key)
 		}

@@ -37,6 +37,7 @@ func TestTerraformWithTerrafilePath(t *testing.T) {
 		"[tf-aws-vpc-experimental] Checking out master of git@github.com:terraform-aws-modules/terraform-aws-vpc",
 		"[tf-aws-vpc-commit] Checking out 01601169c00c68f37d5df8a80cc17c88f02c04d0 of git@github.com:terraform-aws-modules/terraform-aws-vpc",
 		"[tf-aws-vpc-default] Checking out master of git@github.com:terraform-aws-modules/terraform-aws-vpc",
+		"[tf-aws-vpc-path] Checking out examples/simple-vpc from master of git@github.com:terraform-aws-modules/terraform-aws-vpc",
 	} {
 		assert.Contains(t, testcli.Stdout(), output)
 	}
