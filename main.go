@@ -50,9 +50,9 @@ func gitClone(repository string, version string, moduleName string) {
 
 func gitClonePath(repository string, path string, version string, moduleName string) {
 	moduleDir := opts.ModulePath + "/" + moduleName
-  tmpModuleDir := opts.ModulePath + "/.tmppath_" + moduleName
+	tmpModuleDir := opts.ModulePath + "/.tmppath_" + moduleName
 
-	os.MkdirAll(tmpModuleDir + "/.git/info", os.ModePerm)
+	os.MkdirAll(tmpModuleDir+"/.git/info", os.ModePerm)
 	fh, err := os.Create(tmpModuleDir + "/.git/info/sparse-checkout")
 	if err != nil {
 		log.Fatalln(err)
@@ -79,7 +79,7 @@ func gitClonePath(repository string, path string, version string, moduleName str
 			log.Fatalln(err)
 		}
 	}
-	err = os.Rename(tmpModuleDir + "/" + path, moduleDir)
+	err = os.Rename(tmpModuleDir+"/"+path, moduleDir)
 	err = os.RemoveAll(tmpModuleDir)
 	if err != nil {
 		log.Fatalln(err)
@@ -96,7 +96,7 @@ func gitCheckoutCommit(commit string, moduleName string) {
 }
 
 func rmGit(moduleName string) {
-  gitDir := opts.ModulePath + "/" + moduleName + "/.git"
+	gitDir := opts.ModulePath + "/" + moduleName + "/.git"
 	err := os.RemoveAll(gitDir)
 	if err != nil {
 		log.Fatalln(err)
