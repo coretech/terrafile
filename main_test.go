@@ -51,6 +51,16 @@ func TestTerraformWithTerrafilePath(t *testing.T) {
 	} {
 		assert.DirExists(t, path.Join(workingDirectory, "vendor/modules", moduleName))
 	}
+
+	for _, moduleName := range []string{
+		"tf-aws-vpc/main.tf",
+		"tf-aws-vpc-experimental/main.tf",
+		"tf-aws-vpc-commit/main.tf",
+		"tf-aws-vpc-default/main.tf",
+		"tf-aws-vpc-path/main.tf",
+	} {
+		assert.FileExists(t, path.Join(workingDirectory, "vendor/modules", moduleName))
+	}
 }
 
 func setup(t *testing.T) (current string, back func()) {
