@@ -33,17 +33,17 @@ func TestTerraformWithTerrafilePath(t *testing.T) {
 	}
 	// Assert output
 	for _, output := range []string{
-		"Checking out v1.46.0 of git@github.com:terraform-aws-modules/terraform-aws-vpc",
-		"Checking out master of git@github.com:terraform-aws-modules/terraform-aws-vpc",
+		"Checking out v1.46.0 of git@github.com:terraform-aws-modules/terraform-aws-vpc -> ./.terrafile/vendor/terraform-aws-modules/terraform-aws-vpc/refs/v1.46.0",
+		"Checking out master of git@github.com:terraform-aws-modules/terraform-aws-vpc -> ./.terrafile/vendor/terraform-aws-modules/terraform-aws-vpc/refs/master",
 	} {
 		assert.Contains(t, testcli.Stdout(), output)
 	}
 	// Assert files exist
 	for _, moduleName := range []string{
-		"tf-aws-vpc",
-		"tf-aws-vpc-experimental",
+		"terraform-aws-modules/terraform-aws-vpc/refs/master",
+		"terraform-aws-modules/terraform-aws-vpc/refs/v1.46.0",
 	} {
-		assert.DirExists(t, path.Join(workingDirectory, "vendor/modules", moduleName))
+		assert.DirExists(t, path.Join(workingDirectory, "./.terrafile/vendor", moduleName))
 	}
 }
 
@@ -61,12 +61,9 @@ func createFile(t *testing.T, filename string, contents string) {
 }
 
 func createTerrafile(t *testing.T, folder string) {
-	var yaml = `tf-aws-vpc:
-  source:  "git@github.com:terraform-aws-modules/terraform-aws-vpc"
-  version: "v1.46.0"
-tf-aws-vpc-experimental:
-  source:  "git@github.com:terraform-aws-modules/terraform-aws-vpc"
-  version: "master"
+	var yaml = `git@github.com:terraform-aws-modules/terraform-aws-vpc:
+  - v1.46.0
+  - master
 `
 	createFile(t, path.Join(folder, "Terrafile"), yaml)
 }
