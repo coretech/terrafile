@@ -4,6 +4,7 @@
 *.dll
 *.so
 *.dylib
+terrafile
 
 # Test binary, build with `go test -c`
 *.test
@@ -12,5 +13,4 @@
 *.out
 
 # Terrafile output
-vendor/modules
-terrafile
+.terrafile
