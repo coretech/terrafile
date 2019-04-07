@@ -38,12 +38,42 @@ func TestTerraformWithTerrafilePath(t *testing.T) {
 	} {
 		assert.Contains(t, testcli.Stdout(), output)
 	}
-	// Assert files exist
+	// Assert folder exist
 	for _, moduleName := range []string{
 		"tf-aws-vpc",
 		"tf-aws-vpc-experimental",
 	} {
 		assert.DirExists(t, path.Join(workingDirectory, "vendor/modules", moduleName))
+	}
+
+	// Assert files exist
+	for _, moduleName := range []string{
+		"tf-aws-vpc/main.tf",
+		"tf-aws-vpc-experimental/main.tf",
+	} {
+		assert.FileExists(t, path.Join(workingDirectory, "vendor/modules", moduleName))
+	}
+
+	// Assert checked out correct version
+	for moduleName, cloneOptions := range map[string]map[string]string{
+		"tf-aws-vpc": map[string]string{
+			"repository": "git@github.com:terraform-aws-modules/terraform-aws-vpc",
+			"version":    "v1.46.0",
+		},
+		"tf-aws-vpc-experimental": map[string]string{
+			"repository": "git@github.com:terraform-aws-modules/terraform-aws-vpc",
+			"version":    "master",
+		},
+	} {
+		testModuleLocation := path.Join(workingDirectory, "vendor/modules", moduleName+"__test")
+		testcli.Run("git", "clone", "-b", cloneOptions["version"], cloneOptions["repository"], testModuleLocation)
+		if !testcli.Success() {
+			t.Fatalf("Expected to succeed, but failed: %q with message: %q", testcli.Error(), testcli.Stderr())
+		}
+		testcli.Run("diff", "--exclude=.git", "-r", path.Join(workingDirectory, "vendor/modules", moduleName), testModuleLocation)
+		if !testcli.Success() {
+			t.Fatalf("File difference found for %q, with failure: %q with message: %q", moduleName, testcli.Error(), testcli.Stderr())
+		}
 	}
 }
 
