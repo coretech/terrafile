@@ -5,6 +5,7 @@ import (
 	"io/ioutil"
 	"os"
 	"os/exec"
+	"path/filepath"
 
 	"github.com/jessevdk/go-flags"
 	"github.com/nritholtz/stdemuxerhook"
@@ -37,7 +38,7 @@ func init() {
 
 func gitClone(repository string, version string, moduleName string) {
 	log.Printf("[*] Checking out %s of %s \n", version, repository)
-	cmd := exec.Command("git", "clone", "-b", version, repository, moduleName)
+	cmd := exec.Command("git", "clone", "--single-branch", "--depth=1", "-b", version, repository, moduleName)
 	cmd.Dir = opts.ModulePath
 	err := cmd.Run()
 	if err != nil {
@@ -71,5 +72,6 @@ func main() {
 	os.MkdirAll(opts.ModulePath, os.ModePerm)
 	for key, module := range config {
 		gitClone(module.Source, module.Version, key)
+		os.RemoveAll(filepath.Join(opts.ModulePath, key, ".git"))
 	}
 }
