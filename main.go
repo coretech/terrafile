@@ -77,6 +77,7 @@ func main() {
 		go func(m module, key string) {
 			gitClone(m.Source, m.Version, key)
 			_ = os.RemoveAll(filepath.Join(opts.ModulePath, key, ".git"))
+			wg.Done()
 		}(mod, key)
 	}
 
