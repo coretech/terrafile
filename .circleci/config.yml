@@ -3,7 +3,7 @@ defaults: &defaults
   docker:
     - image: circleci/golang:1.12.5
       environment:
-        GO111MODULE: on
+        GO111MODULE: "on"
 
 version: 2
 jobs:
