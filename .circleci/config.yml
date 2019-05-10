@@ -1,14 +1,9 @@
-aliases:
-  - &dep_ensure
-    name: dep_ensure
-    command: |
-      go get -u github.com/golang/dep/cmd/dep
-      dep ensure
-
 defaults: &defaults
   working_directory: /go/src/github.com/coretech/terrafile
   docker:
     - image: circleci/golang:1.11.1
+      environment:
+        GO111MODULE: on
 
 version: 2
 jobs:
@@ -16,7 +11,6 @@ jobs:
     <<: *defaults 
     steps:
       - checkout
-      - run: *dep_ensure
       - run:
           name: build_and_test
           command: |
@@ -26,7 +20,6 @@ jobs:
     <<: *defaults
     steps:
       - checkout
-      - run: *dep_ensure
       - run: curl -sL https://git.io/goreleaser | bash
 workflows:
   version: 2
