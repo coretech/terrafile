@@ -75,9 +75,9 @@ func main() {
 	for key, mod := range config {
 		wg.Add(1)
 		go func(m module, key string) {
+			defer wg.Done()
 			gitClone(m.Source, m.Version, key)
 			_ = os.RemoveAll(filepath.Join(opts.ModulePath, key, ".git"))
-			wg.Done()
 		}(mod, key)
 	}
 
