@@ -6,6 +6,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"sync"
 
 	"github.com/jessevdk/go-flags"
 	"github.com/nritholtz/stdemuxerhook"
@@ -68,10 +69,17 @@ func main() {
 	}
 
 	// Clone modules
-	os.RemoveAll(opts.ModulePath)
-	os.MkdirAll(opts.ModulePath, os.ModePerm)
-	for key, module := range config {
-		gitClone(module.Source, module.Version, key)
-		os.RemoveAll(filepath.Join(opts.ModulePath, key, ".git"))
+	var wg sync.WaitGroup
+	_ = os.RemoveAll(opts.ModulePath)
+	_ = os.MkdirAll(opts.ModulePath, os.ModePerm)
+	for key, mod := range config {
+		wg.Add(1)
+		go func(m module, key string) {
+			defer wg.Done()
+			gitClone(m.Source, m.Version, key)
+			_ = os.RemoveAll(filepath.Join(opts.ModulePath, key, ".git"))
+		}(mod, key)
 	}
+
+	wg.Wait()
 }
