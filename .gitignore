@@ -14,3 +14,6 @@
 # Terrafile output
 vendor/modules
 terrafile
+
+#IDEs
+.idea/
