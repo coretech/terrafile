@@ -31,12 +31,13 @@ import (
 )
 
 type module struct {
-	Source  string `yaml:"source"`
-	Version string `yaml:"version"`
+	Source      string   `yaml:"source"`
+	Version     string   `yaml:"version"`
+	Destination []string `yaml:"destination"`
 }
 
 var opts struct {
-	ModulePath string `short:"p" long:"module_path" default:"./vendor/modules" description:"File path to install generated terraform modules"`
+	ModulePath string `short:"p" long:"module_path" default:"./vendor/modules" description:"File path to install generated terraform modules, if not overridden by 'destination:' field"`
 
 	TerrafilePath string `short:"f" long:"terrafile_file" default:"./Terrafile" description:"File path to the Terrafile file"`
 }
@@ -53,14 +54,14 @@ func init() {
 	log.AddHook(stdemuxerhook.New(log.StandardLogger()))
 }
 
-func gitClone(repository string, version string, moduleName string) {
+func gitClone(repository string, version string, moduleName string, destinationDir string) {
 	log.Printf("[*] Checking out %s of %s \n", version, repository)
 	cmd := exec.Command("git", "clone", "--single-branch", "--depth=1", "-b", version, repository, moduleName)
-	cmd.Dir = opts.ModulePath
-	err := cmd.Run()
-	if err != nil {
-		log.Fatalln(err)
+	cmd.Dir = destinationDir
+	if err := cmd.Run(); err != nil {
+		log.Fatalf("failed to clone repository %s due to error: %s", cmd.String(), err)
 	}
+	_ = os.RemoveAll(filepath.Join(destinationDir, moduleName, ".git"))
 }
 
 func main() {
@@ -69,19 +70,20 @@ func main() {
 
 	// Invalid choice
 	if err != nil {
+		log.Errorf("failed to parse flags due to: %s", err)
 		os.Exit(1)
 	}
 
 	// Read File
 	yamlFile, err := ioutil.ReadFile(opts.TerrafilePath)
 	if err != nil {
-		log.Fatalln(err)
+		log.Fatalf("failed to read configuration in fie %s due to error: %s", opts.TerrafilePath, err)
 	}
 
 	// Parse File
 	var config map[string]module
 	if err := yaml.Unmarshal(yamlFile, &config); err != nil {
-		log.Fatalln(err)
+		log.Fatalf("failed to parce yaml file due to error: %s", err)
 	}
 
 	// Clone modules
@@ -92,8 +94,36 @@ func main() {
 		wg.Add(1)
 		go func(m module, key string) {
 			defer wg.Done()
-			gitClone(m.Source, m.Version, key)
-			_ = os.RemoveAll(filepath.Join(opts.ModulePath, key, ".git"))
+
+			firstDestination := opts.ModulePath
+			skipCopy := true
+			if m.Destination != nil && len(m.Destination) > 0 {
+				firstDestination = m.Destination[0]
+				skipCopy = false
+			}
+
+			if err := os.MkdirAll(firstDestination, os.ModePerm); err != nil {
+				log.Errorf("failed to create folder %s due to error: %s", firstDestination, err)
+				return
+			}
+
+			gitClone(m.Source, m.Version, key, firstDestination)
+
+			if skipCopy {
+				return
+			}
+
+			for _, dst := range m.Destination[1:] {
+				if err := os.MkdirAll(dst, os.ModePerm); err != nil {
+					log.Errorf("failed to create folder %s due to error: %s", dst, err)
+					return
+				}
+				cmd := exec.Command("cp", "-Rf", filepath.Join(firstDestination, key), filepath.Join(dst, key))
+				if err := cmd.Run(); err != nil {
+					log.Errorf("failed to copy module from %s to %s due to error: %s", filepath.Join(firstDestination, key), filepath.Join(dst, key), err)
+				}
+			}
+
 		}(mod, key)
 	}
 
