@@ -90,6 +90,7 @@ func main() {
 	var wg sync.WaitGroup
 	_ = os.RemoveAll(opts.ModulePath)
 	_ = os.MkdirAll(opts.ModulePath, os.ModePerm)
+	
 	for key, mod := range config {
 		wg.Add(1)
 		go func(m module, key string) {
@@ -114,14 +115,21 @@ func main() {
 			}
 
 			for _, dst := range m.Destination[1:] {
-				if err := os.MkdirAll(dst, os.ModePerm); err != nil {
-					log.Errorf("failed to create folder %s due to error: %s", dst, err)
-					return
-				}
-				cmd := exec.Command("cp", "-Rf", filepath.Join(firstDestination, key), filepath.Join(dst, key))
-				if err := cmd.Run(); err != nil {
-					log.Errorf("failed to copy module from %s to %s due to error: %s", filepath.Join(firstDestination, key), filepath.Join(dst, key), err)
-				}
+
+				wg.Add(1)
+				go func(dst string) {
+					defer wg.Done()
+					if err := os.MkdirAll(dst, os.ModePerm); err != nil {
+						log.Errorf("failed to create folder %s due to error: %s", dst, err)
+						return
+					}
+					moduleSrc := filepath.Join(firstDestination, key)
+					moduleDst := filepath.Join(dst, key)
+					cmd := exec.Command("cp", "-Rf", moduleSrc, moduleDst)
+					if err := cmd.Run(); err != nil {
+						log.Errorf("failed to copy module from %s to %s due to error: %s", moduleSrc, moduleDst, err)
+					}
+				}(dst)
 			}
 
 		}(mod, key)
