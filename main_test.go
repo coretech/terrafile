@@ -70,10 +70,10 @@ func TestTerraformWithTerrafilePath(t *testing.T) {
 
 	// Assert folder exist with non-default destination
 	for _, moduleName := range []string{
-		"testdata/stackA/tf-aws-vpc-legacy",
-		"testdata/stackA/tf-aws-vpc-legacy2",
-		"testdata/stackB/tf-aws-vpc-legacy2",
-		"testdata/stackC/tf-aws-vpc-legacy2",
+		"testdata/stackA/vendor/modules/tf-aws-vpc-legacy",
+		"testdata/stackA/vendor/modules/tf-aws-vpc-legacy2",
+		"testdata/stackB/vendor/modules/tf-aws-vpc-legacy2",
+		"testdata/stackC/vendor/modules/tf-aws-vpc-legacy2",
 	} {
 		assert.DirExists(t, path.Join(workingDirectory, moduleName))
 	}
@@ -88,10 +88,10 @@ func TestTerraformWithTerrafilePath(t *testing.T) {
 
 	// Assert files exist with non-default destination
 	for _, moduleName := range []string{
-		"testdata/stackA/tf-aws-vpc-legacy/main.tf",
-		"testdata/stackA/tf-aws-vpc-legacy2/main.tf",
-		"testdata/stackB/tf-aws-vpc-legacy2/main.tf",
-		"testdata/stackC/tf-aws-vpc-legacy2/main.tf",
+		"testdata/stackA/vendor/modules/tf-aws-vpc-legacy/main.tf",
+		"testdata/stackA/vendor/modules/tf-aws-vpc-legacy2/main.tf",
+		"testdata/stackB/vendor/modules/tf-aws-vpc-legacy2/main.tf",
+		"testdata/stackC/vendor/modules/tf-aws-vpc-legacy2/main.tf",
 	} {
 		assert.FileExists(t, path.Join(workingDirectory, moduleName))
 	}
@@ -120,7 +120,7 @@ func TestTerraformWithTerrafilePath(t *testing.T) {
 
 	// Assert checked out correct version to non-default destination
 	for dst, checkout := range map[string]map[string]map[string]string{
-		"testdata/stackA": map[string]map[string]string{
+		"testdata/stackA/vendor/modules": map[string]map[string]string{
 			"tf-aws-vpc-legacy": map[string]string{
 				"repository": "git@github.com:terraform-aws-modules/terraform-aws-vpc",
 				"version":    "v1.36.0",
@@ -130,13 +130,13 @@ func TestTerraformWithTerrafilePath(t *testing.T) {
 				"version":    "v1.35.0",
 			},
 		},
-		"testdata/stackB": map[string]map[string]string{
+		"testdata/stackB/vendor/modules": map[string]map[string]string{
 			"tf-aws-vpc-legacy2": map[string]string{
 				"repository": "git@github.com:terraform-aws-modules/terraform-aws-vpc",
 				"version":    "v1.35.0",
 			},
 		},
-		"testdata/stackC": map[string]map[string]string{
+		"testdata/stackC/vendor/modules": map[string]map[string]string{
 			"tf-aws-vpc-legacy2": map[string]string{
 				"repository": "git@github.com:terraform-aws-modules/terraform-aws-vpc",
 				"version":    "v1.35.0",

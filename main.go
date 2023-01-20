@@ -90,7 +90,7 @@ func main() {
 	var wg sync.WaitGroup
 	_ = os.RemoveAll(opts.ModulePath)
 	_ = os.MkdirAll(opts.ModulePath, os.ModePerm)
-	
+
 	for key, mod := range config {
 		wg.Add(1)
 		go func(m module, key string) {
@@ -99,7 +99,7 @@ func main() {
 			firstDestination := opts.ModulePath
 			skipCopy := true
 			if m.Destination != nil && len(m.Destination) > 0 {
-				firstDestination = m.Destination[0]
+				firstDestination = filepath.Join(m.Destination[0], opts.ModulePath)
 				skipCopy = false
 			}
 
@@ -114,8 +114,8 @@ func main() {
 				return
 			}
 
-			for _, dst := range m.Destination[1:] {
-
+			for _, d := range m.Destination[1:] {
+				dst := filepath.Join(d, opts.ModulePath)
 				wg.Add(1)
 				go func(dst string, m module, key string) {
 					defer wg.Done()
