@@ -97,17 +97,29 @@ func TestTerraformWithTerrafilePath(t *testing.T) {
 	}
 
 	// Assert checked out correct version
-	for dst, checkout := range map[string]map[string]map[string]string{
-		"vendor/modules": map[string]map[string]string{
-			"tf-aws-vpc": map[string]string{
-				"repository": "git@github.com:terraform-aws-modules/terraform-aws-vpc",
-				"version":    "v1.46.0",
-			},
-			"tf-aws-vpc-experimental": map[string]string{
-				"repository": "git@github.com:terraform-aws-modules/terraform-aws-vpc",
-				"version":    "master",
-			},
+	for moduleName, cloneOptions := range map[string]map[string]string{
+		"tf-aws-vpc": map[string]string{
+			"repository": "git@github.com:terraform-aws-modules/terraform-aws-vpc",
+			"version":    "v1.46.0",
 		},
+		"tf-aws-vpc-experimental": map[string]string{
+			"repository": "git@github.com:terraform-aws-modules/terraform-aws-vpc",
+			"version":    "master",
+		},
+	} {
+		testModuleLocation := path.Join(workingDirectory, "vendor/modules", moduleName+"__test")
+		testcli.Run("git", "clone", "-b", cloneOptions["version"], cloneOptions["repository"], testModuleLocation)
+		if !testcli.Success() {
+			t.Fatalf("Expected to succeed, but failed: %q with message: %q", testcli.Error(), testcli.Stderr())
+		}
+		testcli.Run("diff", "--exclude=.git", "-r", path.Join(workingDirectory, "vendor/modules", moduleName), testModuleLocation)
+		if !testcli.Success() {
+			t.Fatalf("File difference found for %q, with failure: %q with message: %q", moduleName, testcli.Error(), testcli.Stderr())
+		}
+	}
+
+	// Assert checked out correct version to non-default destination
+	for dst, checkout := range map[string]map[string]map[string]string{
 		"testdata/stackA": map[string]map[string]string{
 			"tf-aws-vpc-legacy": map[string]string{
 				"repository": "git@github.com:terraform-aws-modules/terraform-aws-vpc",
@@ -143,7 +155,6 @@ func TestTerraformWithTerrafilePath(t *testing.T) {
 			}
 		}
 	}
-
 }
 
 func setup(t *testing.T) (current string, back func()) {
