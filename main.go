@@ -117,7 +117,7 @@ func main() {
 			for _, dst := range m.Destination[1:] {
 
 				wg.Add(1)
-				go func(dst string) {
+				go func(dst string, m module, key string) {
 					defer wg.Done()
 					if err := os.MkdirAll(dst, os.ModePerm); err != nil {
 						log.Errorf("failed to create folder %s due to error: %s", dst, err)
@@ -129,7 +129,7 @@ func main() {
 					if err := cmd.Run(); err != nil {
 						log.Errorf("failed to copy module from %s to %s due to error: %s", moduleSrc, moduleDst, err)
 					}
-				}(dst)
+				}(dst, m, key)
 			}
 
 		}(mod, key)
