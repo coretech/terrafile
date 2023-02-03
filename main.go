@@ -99,7 +99,16 @@ func main() {
 			firstDestination := opts.ModulePath
 			skipCopy := true
 			if m.Destination != nil && len(m.Destination) > 0 {
-				firstDestination = filepath.Join(m.Destination[0], opts.ModulePath)
+				// TODO: START fix this in a more sensible way .....
+				// firstDestination = filepath.Join(m.Destination[0], opts.ModulePath)
+				firstDestination, err = os.MkdirTemp("", "terrafile_repo_clones")
+				if err != nil {
+					log.Errorf("failed to create temporary folder %s due to error: %s", firstDestination, err)
+					return
+				}
+				// log.Printf("Creating temp dir: %s", firstDestination)
+				// FIXME: There should be a call to delete the temporary dir later on!
+				// TODO: END
 				skipCopy = false
 			}
 
@@ -114,7 +123,7 @@ func main() {
 				return
 			}
 
-			for _, d := range m.Destination[1:] {
+			for _, d := range m.Destination {
 				dst := filepath.Join(d, opts.ModulePath)
 				wg.Add(1)
 				go func(dst string, m module, key string) {
@@ -124,14 +133,13 @@ func main() {
 						return
 					}
 					moduleSrc := filepath.Join(firstDestination, key)
-					moduleDst := filepath.Join(dst, key)
+					moduleDst := filepath.Join(dst)
 					cmd := exec.Command("cp", "-Rf", moduleSrc, moduleDst)
 					if err := cmd.Run(); err != nil {
 						log.Errorf("failed to copy module from %s to %s due to error: %s", moduleSrc, moduleDst, err)
 					}
 				}(dst, m, key)
 			}
-
 		}(mod, key)
 	}
 
