@@ -19,3 +19,6 @@ terrafile
 .idea/
 dist/
 .DS_Store
+
+.devcontainer/.bash_history
+.devcontainer/.zsh_history
