@@ -102,7 +102,7 @@ tf-aws-s3-bucket:
 
 The `destination` of module is an array of directories (stacks) where the module should be used.
 The module itself is fetched once and copied over to designated destionations.
-Final destination of the module is handled in a similar as in first approach: `$destination/$module_path/$module_key`.
+Final destination of the module is handled in a similar way as in first approach: `$destination/$module_path/$module_key`.
 
 The output of the run is exactly the same in both options.
 
