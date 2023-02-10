@@ -63,7 +63,6 @@ func gitClone(repository string, version string, moduleName string, destinationD
 	if err := cmd.Run(); err != nil {
 		log.Fatalf("failed to clone repository %s due to error: %s", cmd.String(), err)
 	}
-	_ = os.RemoveAll(filepath.Join(destinationDir, moduleName, ".git"))
 }
 
 func main() {
@@ -101,7 +100,7 @@ func main() {
 			firstDestination := opts.ModulePath
 			skipCopy := true
 			if m.Destination != nil && len(m.Destination) > 0 {
-				firstDestination, err = os.MkdirTemp("", "terrafile_repo_clones")
+				firstDestination = filepath.Join(m.Destination[0], opts.ModulePath)
 				skipCopy = false
 			}
 
@@ -111,7 +110,9 @@ func main() {
 			}
 
 			gitClone(m.Source, m.Version, key, firstDestination)
-
+			// Delete .git folder
+			_ = os.RemoveAll(filepath.Join(firstDestination, key, ".git"))
+			
 			if skipCopy {
 				return
 			}
