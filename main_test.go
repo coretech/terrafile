@@ -144,6 +144,7 @@ func TestTerraformWithTerrafilePath(t *testing.T) {
 	} {
 		for moduleName, cloneOptions := range checkout {
 			testModuleLocation := path.Join(workingDirectory, dst, moduleName+"__test")
+			os.RemoveAll(testModuleLocation)
 			testcli.Run("git", "clone", "-b", cloneOptions["version"], cloneOptions["repository"], testModuleLocation)
 			if !testcli.Success() {
 				t.Fatalf("Expected to succeed, but failed: %q with message: %q", testcli.Error(), testcli.Stderr())

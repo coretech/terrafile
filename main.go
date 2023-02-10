@@ -125,6 +125,7 @@ func main() {
 						log.Errorf("failed to create folder %s due to error: %s", dst, err)
 						return
 					}
+					// Delete previously copied artifacts
 					os.RemoveAll(filepath.Join(dst, key))
 					moduleSrc := filepath.Join(firstDestination, key)
 					cmd := exec.Command("cp", "-Rf", moduleSrc, dst)
