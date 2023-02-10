@@ -18,7 +18,6 @@ package main
 
 import (
 	"fmt"
-	"io/ioutil"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -76,7 +75,7 @@ func main() {
 	}
 
 	// Read File
-	yamlFile, err := ioutil.ReadFile(opts.TerrafilePath)
+	yamlFile, err := os.ReadFile(opts.TerrafilePath)
 	if err != nil {
 		log.Fatalf("failed to read configuration in fie %s due to error: %s", opts.TerrafilePath, err)
 	}
@@ -112,7 +111,7 @@ func main() {
 			gitClone(m.Source, m.Version, key, firstDestination)
 			// Delete .git folder
 			_ = os.RemoveAll(filepath.Join(firstDestination, key, ".git"))
-			
+
 			if skipCopy {
 				return
 			}

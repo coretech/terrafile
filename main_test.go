@@ -18,7 +18,6 @@ package main
 
 import (
 	"fmt"
-	"io/ioutil"
 	"os"
 	"path"
 	"testing"
@@ -158,7 +157,7 @@ func TestTerraformWithTerrafilePath(t *testing.T) {
 }
 
 func setup(t *testing.T) (current string, back func()) {
-	folder, err := ioutil.TempDir("", "")
+	folder, err := os.MkdirTemp("", "")
 	assert.NoError(t, err)
 	createTerrafile(t, folder)
 	return folder, func() {
@@ -167,7 +166,7 @@ func setup(t *testing.T) (current string, back func()) {
 }
 
 func createFile(t *testing.T, filename string, contents string) {
-	assert.NoError(t, ioutil.WriteFile(filename, []byte(contents), 0644))
+	assert.NoError(t, os.WriteFile(filename, []byte(contents), 0644))
 }
 
 func createTerrafile(t *testing.T, folder string) {
