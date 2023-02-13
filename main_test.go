@@ -52,10 +52,11 @@ func TestTerraformWithTerrafilePath(t *testing.T) {
 	}
 	// Assert output
 	for _, output := range []string{
-		"Checking out v1.46.0 of git@github.com:terraform-aws-modules/terraform-aws-vpc",
 		"Checking out master of git@github.com:terraform-aws-modules/terraform-aws-vpc",
-		"Checking out v1.36.0 of git@github.com:terraform-aws-modules/terraform-aws-vpc",
-		"Checking out v1.35.0 of git@github.com:terraform-aws-modules/terraform-aws-vpc",
+		"Checking out v1.46.0 of git@github.com:terraform-aws-modules/terraform-aws-vpc",
+		"Checking out v3.2.0 of git@github.com:terraform-aws-modules/terraform-aws-vpn-gateway",
+		"Checking out v3.6.1 of git@github.com:terraform-aws-modules/terraform-aws-s3-bucket",
+		"Checking out v5.11.1 of git@github.com:terraform-aws-modules/terraform-aws-iam",
 	} {
 		assert.Contains(t, testcli.Stdout(), output)
 	}
@@ -69,10 +70,11 @@ func TestTerraformWithTerrafilePath(t *testing.T) {
 
 	// Assert folder exist with non-default destination
 	for _, moduleName := range []string{
-		"testdata/stackA/vendor/modules/tf-aws-vpc-legacy",
-		"testdata/stackA/vendor/modules/tf-aws-vpc-legacy2",
-		"testdata/stackB/vendor/modules/tf-aws-vpc-legacy2",
-		"testdata/stackC/vendor/modules/tf-aws-vpc-legacy2",
+		"testdata/networking/vendor/modules/tf-aws-vpn-gateway",
+		"testdata/networking/vendor/modules/tf-aws-s3-bucket",
+		"testdata/iam/vendor/modules/tf-aws-iam",
+		"testdata/onboarding/vendor/modules/tf-aws-s3-bucket",
+		"testdata/some-other-stack/vendor/modules/tf-aws-s3-bucket",
 	} {
 		assert.DirExists(t, path.Join(workingDirectory, moduleName))
 	}
@@ -87,10 +89,14 @@ func TestTerraformWithTerrafilePath(t *testing.T) {
 
 	// Assert files exist with non-default destination
 	for _, moduleName := range []string{
-		"testdata/stackA/vendor/modules/tf-aws-vpc-legacy/main.tf",
-		"testdata/stackA/vendor/modules/tf-aws-vpc-legacy2/main.tf",
-		"testdata/stackB/vendor/modules/tf-aws-vpc-legacy2/main.tf",
-		"testdata/stackC/vendor/modules/tf-aws-vpc-legacy2/main.tf",
+		"testdata/networking/vendor/modules/tf-aws-vpn-gateway/main.tf",
+		"testdata/networking/vendor/modules/tf-aws-s3-bucket/main.tf",
+
+		// terraform-aws-modules/terraform-aws-iam doesn't have main.tf, as it represents set of modules
+		// However, some terraform-aws-modules/terraform-aws-iam/modules have, e.g.:
+		"testdata/iam/vendor/modules/tf-aws-iam/modules/iam-account/main.tf",
+		"testdata/onboarding/vendor/modules/tf-aws-s3-bucket/main.tf",
+		"testdata/some-other-stack/vendor/modules/tf-aws-s3-bucket/main.tf",
 	} {
 		assert.FileExists(t, path.Join(workingDirectory, moduleName))
 	}
@@ -119,26 +125,32 @@ func TestTerraformWithTerrafilePath(t *testing.T) {
 
 	// Assert checked out correct version to non-default destination
 	for dst, checkout := range map[string]map[string]map[string]string{
-		"testdata/stackA/vendor/modules": map[string]map[string]string{
-			"tf-aws-vpc-legacy": map[string]string{
-				"repository": "git@github.com:terraform-aws-modules/terraform-aws-vpc",
-				"version":    "v1.36.0",
+		"testdata/networking/vendor/modules": {
+			"tf-aws-s3-bucket": {
+				"repository": "git@github.com:terraform-aws-modules/terraform-aws-s3-bucket",
+				"version":    "v3.6.1",
 			},
-			"tf-aws-vpc-legacy2": map[string]string{
-				"repository": "git@github.com:terraform-aws-modules/terraform-aws-vpc",
-				"version":    "v1.35.0",
-			},
-		},
-		"testdata/stackB/vendor/modules": map[string]map[string]string{
-			"tf-aws-vpc-legacy2": map[string]string{
-				"repository": "git@github.com:terraform-aws-modules/terraform-aws-vpc",
-				"version":    "v1.35.0",
+			"tf-aws-vpn-gateway": {
+				"repository": "git@github.com:terraform-aws-modules/terraform-aws-vpn-gateway",
+				"version":    "v3.2.0",
 			},
 		},
-		"testdata/stackC/vendor/modules": map[string]map[string]string{
-			"tf-aws-vpc-legacy2": map[string]string{
-				"repository": "git@github.com:terraform-aws-modules/terraform-aws-vpc",
-				"version":    "v1.35.0",
+		"testdata/iam/vendor/modules": {
+			"tf-aws-iam": {
+				"repository": "git@github.com:terraform-aws-modules/terraform-aws-iam",
+				"version":    "v5.11.1",
+			},
+		},
+		"testdata/onboarding/vendor/modules": {
+			"tf-aws-s3-bucket": {
+				"repository": "git@github.com:terraform-aws-modules/terraform-aws-s3-bucket",
+				"version":    "v3.6.1",
+			},
+		},
+		"testdata/some-other-stack/vendor/modules": {
+			"tf-aws-s3-bucket": {
+				"repository": "git@github.com:terraform-aws-modules/terraform-aws-s3-bucket",
+				"version":    "v3.6.1",
 			},
 		},
 	} {
@@ -177,18 +189,23 @@ func createTerrafile(t *testing.T, folder string) {
 tf-aws-vpc-experimental:
   source:  "git@github.com:terraform-aws-modules/terraform-aws-vpc"
   version: "master"
-tf-aws-vpc-legacy:
-  source:  "git@github.com:terraform-aws-modules/terraform-aws-vpc"
-  version: "v1.36.0"
-  destination: 
-    - "./testdata/stackA"
-tf-aws-vpc-legacy2:
-  source:  "git@github.com:terraform-aws-modules/terraform-aws-vpc"
-  version: "v1.35.0"
+tf-aws-vpn-gateway:
+  source:  "git@github.com:terraform-aws-modules/terraform-aws-vpn-gateway"
+  version: "v3.2.0"
   destination:
-    - "./testdata/stackA"
-    - "./testdata/stackB"
-    - "./testdata/stackC"
+    - testdata/networking
+tf-aws-iam:
+  source:  "git@github.com:terraform-aws-modules/terraform-aws-iam"
+  version: "v5.11.1"
+  destination:
+    - testdata/iam
+tf-aws-s3-bucket:
+  source:  "git@github.com:terraform-aws-modules/terraform-aws-s3-bucket"
+  version: "v3.6.1"
+  destination:
+    - testdata/networking
+    - testdata/onboarding
+    - testdata/some-other-stack
 `
 	createFile(t, path.Join(folder, "Terrafile"), yaml)
 }
