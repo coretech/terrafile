@@ -43,6 +43,9 @@ func TestTerraformWithTerrafilePath(t *testing.T) {
 
 	testcli.Run(terrafileBinaryPath, "-f", fmt.Sprint(folder, "/Terrafile"))
 
+	defer println(testcli.Stdout())
+	defer println(testcli.Stderr())
+
 	defer func() {
 		assert.NoError(t, os.RemoveAll("testdata/"))
 	}()
@@ -68,13 +71,15 @@ func TestTerraformWithTerrafilePath(t *testing.T) {
 		assert.DirExists(t, path.Join(workingDirectory, "vendor/modules", moduleName))
 	}
 
-	// Assert folder exist with non-default destination
+	// Assert folder exist with non-default destinations
 	for _, moduleName := range []string{
-		"testdata/networking/vendor/modules/tf-aws-vpn-gateway",
-		"testdata/networking/vendor/modules/tf-aws-s3-bucket",
-		"testdata/iam/vendor/modules/tf-aws-iam",
-		"testdata/onboarding/vendor/modules/tf-aws-s3-bucket",
-		"testdata/some-other-stack/vendor/modules/tf-aws-s3-bucket",
+		"testdata/networking/vendor/modules/tf-aws-vpn-gateway/",
+		"testdata/networking/vendor/modules/tf-aws-s3-bucket/",
+		"testdata/iam/vendor/modules/tf-aws-iam/",
+
+		// Symlinks are not Dirs. But contents will be tested later on
+		// "testdata/onboarding/vendor/modules/tf-aws-s3-bucket/",
+		// "testdata/some-other-stack/vendor/modules/tf-aws-s3-bucket/",
 	} {
 		assert.DirExists(t, path.Join(workingDirectory, moduleName))
 	}
@@ -87,7 +92,7 @@ func TestTerraformWithTerrafilePath(t *testing.T) {
 		assert.FileExists(t, path.Join(workingDirectory, "vendor/modules", moduleName))
 	}
 
-	// Assert files exist with non-default destination
+	// Assert files exist with non-default destinations
 	for _, moduleName := range []string{
 		"testdata/networking/vendor/modules/tf-aws-vpn-gateway/main.tf",
 		"testdata/networking/vendor/modules/tf-aws-s3-bucket/main.tf",
@@ -123,7 +128,7 @@ func TestTerraformWithTerrafilePath(t *testing.T) {
 		}
 	}
 
-	// Assert checked out correct version to non-default destination
+	// Assert checked out correct version to non-default destinations
 	for dst, checkout := range map[string]map[string]map[string]string{
 		"testdata/networking/vendor/modules": {
 			"tf-aws-s3-bucket": {
@@ -192,17 +197,17 @@ tf-aws-vpc-experimental:
 tf-aws-vpn-gateway:
   source:  "git@github.com:terraform-aws-modules/terraform-aws-vpn-gateway"
   version: "v3.2.0"
-  destination:
+  destinations:
     - testdata/networking
 tf-aws-iam:
   source:  "git@github.com:terraform-aws-modules/terraform-aws-iam"
   version: "v5.11.1"
-  destination:
+  destinations:
     - testdata/iam
 tf-aws-s3-bucket:
   source:  "git@github.com:terraform-aws-modules/terraform-aws-s3-bucket"
   version: "v3.6.1"
-  destination:
+  destinations:
     - testdata/networking
     - testdata/onboarding
     - testdata/some-other-stack

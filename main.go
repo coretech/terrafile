@@ -30,13 +30,13 @@ import (
 )
 
 type module struct {
-	Source      string   `yaml:"source"`
-	Version     string   `yaml:"version"`
-	Destination []string `yaml:"destination"`
+	Source       string   `yaml:"source"`
+	Version      string   `yaml:"version"`
+	Destinations []string `yaml:"destinations"`
 }
 
 var opts struct {
-	ModulePath string `short:"p" long:"module_path" default:"./vendor/modules" description:"File path to install generated terraform modules, if not overridden by 'destination:' field"`
+	ModulePath string `short:"p" long:"module_path" default:"./vendor/modules" description:"File path to install generated terraform modules, if not overridden by 'destinations:' field"`
 
 	TerrafilePath string `short:"f" long:"terrafile_file" default:"./Terrafile" description:"File path to the Terrafile file"`
 }
@@ -66,6 +66,7 @@ func gitClone(repository string, version string, moduleName string, destinationD
 }
 
 func main() {
+
 	fmt.Printf("Terrafile: version %v, commit %v, built at %v \n", version, commit, date)
 	_, err := flags.Parse(&opts)
 
@@ -73,6 +74,11 @@ func main() {
 	if err != nil {
 		log.Errorf("failed to parse flags due to: %s", err)
 		os.Exit(1)
+	}
+
+	workDirAbsolutePath, err := os.Getwd()
+	if err != nil {
+		log.Errorf("failed to get working directory absolute path due to: %s", err)
 	}
 
 	// Read File
@@ -97,43 +103,54 @@ func main() {
 		go func(m module, key string) {
 			defer wg.Done()
 
-			firstDestination := opts.ModulePath
-			skipCopy := true
-			if m.Destination != nil && len(m.Destination) > 0 {
-				firstDestination = filepath.Join(m.Destination[0], opts.ModulePath)
-				skipCopy = false
+			// path to clone module
+			cloneDestination := opts.ModulePath
+			// list of paths to link module to. empty, uless Destinations are more than 1 location
+			var linkDestinations []string
+
+			if m.Destinations != nil && len(m.Destinations) > 0 {
+				// set first in Destinations as location to clone to
+				cloneDestination = filepath.Join(m.Destinations[0], opts.ModulePath)
+				// the rest of Destinations are locations to link module to
+				linkDestinations = m.Destinations[1:]
+
 			}
 
-			if err := os.MkdirAll(firstDestination, os.ModePerm); err != nil {
-				log.Errorf("failed to create folder %s due to error: %s", firstDestination, err)
+			// create folder to clone into
+			if err := os.MkdirAll(cloneDestination, os.ModePerm); err != nil {
+				log.Errorf("failed to create folder %s due to error: %s", cloneDestination, err)
+
+				// no reason to continue as failed to create folder
 				return
 			}
 
-			gitClone(m.Source, m.Version, key, firstDestination)
-			// Delete .git folder
-			_ = os.RemoveAll(filepath.Join(firstDestination, key, ".git"))
+			// clone repository
+			gitClone(m.Source, m.Version, key, cloneDestination)
 
-			if skipCopy {
-				return
-			}
-
-			for _, d := range m.Destination[1:] {
+			for _, d := range linkDestinations {
+				// the source location as folder where module was cloned and module folder name
+				moduleSrc := filepath.Join(workDirAbsolutePath, cloneDestination, key)
+				// append destination path with module path
 				dst := filepath.Join(d, opts.ModulePath)
-				wg.Add(1)
-				go func(dst string, m module, key string) {
-					defer wg.Done()
-					if err := os.MkdirAll(dst, os.ModePerm); err != nil {
-						log.Errorf("failed to create folder %s due to error: %s", dst, err)
-						return
-					}
-					// Delete previously copied artifacts
-					os.RemoveAll(filepath.Join(dst, key))
-					moduleSrc := filepath.Join(firstDestination, key)
-					cmd := exec.Command("cp", "-Rf", moduleSrc, dst)
-					if err := cmd.Run(); err != nil {
-						log.Errorf("failed to copy module from %s to %s due to error: %s", moduleSrc, dst, err)
-					}
-				}(dst, m, key)
+
+				log.Infof("[*] Creating folder %s", dst)
+				if err := os.MkdirAll(dst, os.ModePerm); err != nil {
+					log.Errorf("failed to create folder %s due to error: %s", dst, err)
+					return
+				}
+
+				dst = filepath.Join(dst, key)
+
+				log.Infof("[*] Remove existing artifacts at %s", dst)
+				if err := os.RemoveAll(dst); err != nil {
+					log.Errorf("failed to remove location %s due to error: %s", dst, err)
+					return
+				}
+
+				log.Infof("[*] Link %s to %s", moduleSrc, dst)
+				if err := os.Symlink(moduleSrc, dst); err != nil {
+					log.Errorf("failed to link module from %s to %s due to error: %s", moduleSrc, dst, err)
+				}
 			}
 		}(mod, key)
 	}

@@ -13,6 +13,7 @@
 
 # Terrafile output
 vendor/modules
+testdata
 terrafile
 
 #IDEs
