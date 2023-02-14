@@ -55,7 +55,7 @@ func init() {
 
 func gitClone(repository string, version string, moduleName string, destinationDir string) {
 	cleanupPath := filepath.Join(destinationDir, moduleName)
-	log.Printf("[*] Cleans up previously clonned artifacts at %s", cleanupPath)
+	log.Printf("[*] Removing previously cloned artifacts at %s", cleanupPath)
 	os.RemoveAll(cleanupPath)
 	log.Printf("[*] Checking out %s of %s \n", version, repository)
 	cmd := exec.Command("git", "clone", "--single-branch", "--depth=1", "-b", version, repository, moduleName)
@@ -78,13 +78,13 @@ func main() {
 	// Read File
 	yamlFile, err := os.ReadFile(opts.TerrafilePath)
 	if err != nil {
-		log.Fatalf("failed to read configuration in fie %s due to error: %s", opts.TerrafilePath, err)
+		log.Fatalf("failed to read configuration in file %s due to error: %s", opts.TerrafilePath, err)
 	}
 
 	// Parse File
 	var config map[string]module
 	if err := yaml.Unmarshal(yamlFile, &config); err != nil {
-		log.Fatalf("failed to parce yaml file due to error: %s", err)
+		log.Fatalf("failed to parse yaml file due to error: %s", err)
 	}
 
 	// Clone modules
