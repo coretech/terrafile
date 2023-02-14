@@ -25,7 +25,8 @@ There are two approaches that can be used for managing your modules depending on
 1. The default approach: `Terrafile` is located directly in the directory where terraform is run
 2. Centrally managed: `Terrafile` is located in "root" directory of your terraform code, managing modules in all subfolders / stacks
 
-An example of default approach (#1) to `Terrafile`:
+### Default Approach
+An example of default approach (#1) to `Terrafile`
 ```
 tf-aws-vpc:
     source:  "git@github.com:terraform-aws-modules/terraform-aws-vpc"
@@ -56,9 +57,10 @@ INFO[0000] [*] Checking out master of git@github.com:terraform-aws-modules/terra
 INFO[0001] [*] Checking out v1.46.0 of git@github.com:terraform-aws-modules/terraform-aws-vpc
 ```
 
-An example of using `Terrafile` in a root directory:
+### Centrally Managed Approach
+An example of using `Terrafile` in a root directory (#2):
 
-Let's assume following directory structure structure
+Let's assume the following directory structure:
 
 ```
 .
@@ -76,7 +78,7 @@ Let's assume following directory structure structure
 └── Terrafile
 ```
 
-In above scenarion Terrafile is not in every single folder but in the "root" of terraform code.
+In the above scenario, Terrafile is not in every single folder but in the "root" of terraform code.
 
 An example usage of centrally managed modules:
 
@@ -101,7 +103,7 @@ tf-aws-s3-bucket:
 ```
 
 The `destination` of module is an array of directories (stacks) where the module should be used.
-The module itself is fetched once and copied over to designated destionations.
+The module itself is fetched once and copied over to designated destinations.
 Final destination of the module is handled in a similar way as in first approach: `$destination/$module_path/$module_key`.
 
 The output of the run is exactly the same in both options.
