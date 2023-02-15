@@ -16,8 +16,8 @@ github.com/rendon/testcli
 # github.com/sirupsen/logrus v1.8.1
 ## explicit; go 1.13
 github.com/sirupsen/logrus
-# github.com/stretchr/testify v1.2.2
-## explicit
+# github.com/stretchr/testify v1.8.1
+## explicit; go 1.13
 github.com/stretchr/testify/assert
 # golang.org/x/sys v0.0.0-20220608164250-635b8c9b7f68
 ## explicit; go 1.17
@@ -27,3 +27,6 @@ golang.org/x/sys/windows
 # gopkg.in/yaml.v2 v2.4.0
 ## explicit; go 1.15
 gopkg.in/yaml.v2
+# gopkg.in/yaml.v3 v3.0.1
+## explicit
+gopkg.in/yaml.v3
