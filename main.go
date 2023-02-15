@@ -39,6 +39,8 @@ var opts struct {
 	ModulePath string `short:"p" long:"module_path" default:"./vendor/modules" description:"File path to install generated terraform modules, if not overridden by 'destinations:' field"`
 
 	TerrafilePath string `short:"f" long:"terrafile_file" default:"./Terrafile" description:"File path to the Terrafile file"`
+
+	Clean bool `short:"c" long:"clean" description:"Remove all artifacts from destinations and module path upon fetching module(s)"`
 }
 
 // To be set by goreleaser on build
@@ -57,7 +59,7 @@ func gitClone(repository string, version string, moduleName string, destinationD
 	cleanupPath := filepath.Join(destinationDir, moduleName)
 	log.Printf("[*] Removing previously cloned artifacts at %s", cleanupPath)
 	os.RemoveAll(cleanupPath)
-	log.Printf("[*] Checking out %s of %s \n", version, repository)
+	log.Printf("[*] Checking out %s of %s", version, repository)
 	cmd := exec.Command("git", "clone", "--single-branch", "--depth=1", "-b", version, repository, moduleName)
 	cmd.Dir = destinationDir
 	if err := cmd.Run(); err != nil {
@@ -91,6 +93,10 @@ func main() {
 	var config map[string]module
 	if err := yaml.Unmarshal(yamlFile, &config); err != nil {
 		log.Fatalf("failed to parse yaml file due to error: %s", err)
+	}
+
+	if opts.Clean {
+		cleanDestinations(getUniqueDestinations(config))
 	}
 
 	// Clone modules
@@ -156,4 +162,44 @@ func main() {
 	}
 
 	wg.Wait()
+}
+
+func getUniqueDestinations(config map[string]module) []string {
+
+	// Map filters duplicates
+	uniqueDestinationsM := make(map[string]string)
+
+	// Range over config and gather all uniquieDestinations
+	for _, m := range config {
+		if len(m.Destinations) == 0 {
+			uniqueDestinationsM[opts.ModulePath] = opts.ModulePath
+			continue
+		}
+
+		// range over Destinations and put them into map
+		for _, dst := range m.Destinations {
+			// Destination supposed to be conjunction of destination defined in file with module path
+			d := filepath.Join(dst, opts.ModulePath)
+			uniqueDestinationsM[d] = d
+		}
+	}
+
+	uniqueDestinations := make([]string, len(uniqueDestinationsM))
+	i := 0
+	for dst := range uniqueDestinationsM {
+		uniqueDestinations[i] = dst
+		i++
+	}
+
+	return uniqueDestinations
+}
+
+func cleanDestinations(destinations []string) {
+	for _, dst := range destinations {
+
+		log.Infof("[*] Removing artifacts from %s", dst)
+		if err := os.RemoveAll(dst); err != nil {
+			log.Errorf("Failed to remove artifacts from %s due to error: %s", dst, err)
+		}
+	}
 }
