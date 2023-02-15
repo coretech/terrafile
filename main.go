@@ -18,7 +18,6 @@ package main
 
 import (
 	"fmt"
-	"io/ioutil"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -31,12 +30,13 @@ import (
 )
 
 type module struct {
-	Source  string `yaml:"source"`
-	Version string `yaml:"version"`
+	Source       string   `yaml:"source"`
+	Version      string   `yaml:"version"`
+	Destinations []string `yaml:"destinations"`
 }
 
 var opts struct {
-	ModulePath string `short:"p" long:"module_path" default:"./vendor/modules" description:"File path to install generated terraform modules"`
+	ModulePath string `short:"p" long:"module_path" default:"./vendor/modules" description:"File path to install generated terraform modules, if not overridden by 'destinations:' field"`
 
 	TerrafilePath string `short:"f" long:"terrafile_file" default:"./Terrafile" description:"File path to the Terrafile file"`
 }
@@ -53,47 +53,105 @@ func init() {
 	log.AddHook(stdemuxerhook.New(log.StandardLogger()))
 }
 
-func gitClone(repository string, version string, moduleName string) {
+func gitClone(repository string, version string, moduleName string, destinationDir string) {
+	cleanupPath := filepath.Join(destinationDir, moduleName)
+	log.Printf("[*] Removing previously cloned artifacts at %s", cleanupPath)
+	os.RemoveAll(cleanupPath)
 	log.Printf("[*] Checking out %s of %s \n", version, repository)
 	cmd := exec.Command("git", "clone", "--single-branch", "--depth=1", "-b", version, repository, moduleName)
-	cmd.Dir = opts.ModulePath
-	err := cmd.Run()
-	if err != nil {
-		log.Fatalln(err)
+	cmd.Dir = destinationDir
+	if err := cmd.Run(); err != nil {
+		log.Fatalf("failed to clone repository %s due to error: %s", cmd.String(), err)
 	}
 }
 
 func main() {
+
 	fmt.Printf("Terrafile: version %v, commit %v, built at %v \n", version, commit, date)
 	_, err := flags.Parse(&opts)
 
 	// Invalid choice
 	if err != nil {
+		log.Errorf("failed to parse flags due to: %s", err)
 		os.Exit(1)
 	}
 
-	// Read File
-	yamlFile, err := ioutil.ReadFile(opts.TerrafilePath)
+	workDirAbsolutePath, err := os.Getwd()
 	if err != nil {
-		log.Fatalln(err)
+		log.Errorf("failed to get working directory absolute path due to: %s", err)
+	}
+
+	// Read File
+	yamlFile, err := os.ReadFile(opts.TerrafilePath)
+	if err != nil {
+		log.Fatalf("failed to read configuration in file %s due to error: %s", opts.TerrafilePath, err)
 	}
 
 	// Parse File
 	var config map[string]module
 	if err := yaml.Unmarshal(yamlFile, &config); err != nil {
-		log.Fatalln(err)
+		log.Fatalf("failed to parse yaml file due to error: %s", err)
 	}
 
 	// Clone modules
 	var wg sync.WaitGroup
 	_ = os.RemoveAll(opts.ModulePath)
 	_ = os.MkdirAll(opts.ModulePath, os.ModePerm)
+
 	for key, mod := range config {
 		wg.Add(1)
 		go func(m module, key string) {
 			defer wg.Done()
-			gitClone(m.Source, m.Version, key)
-			_ = os.RemoveAll(filepath.Join(opts.ModulePath, key, ".git"))
+
+			// path to clone module
+			cloneDestination := opts.ModulePath
+			// list of paths to link module to. empty, unless Destinations are more than 1 location
+			var linkDestinations []string
+
+			if m.Destinations != nil && len(m.Destinations) > 0 {
+				// set first in Destinations as location to clone to
+				cloneDestination = filepath.Join(m.Destinations[0], opts.ModulePath)
+				// the rest of Destinations are locations to link module to
+				linkDestinations = m.Destinations[1:]
+
+			}
+
+			// create folder to clone into
+			if err := os.MkdirAll(cloneDestination, os.ModePerm); err != nil {
+				log.Errorf("failed to create folder %s due to error: %s", cloneDestination, err)
+
+				// no reason to continue as failed to create folder
+				return
+			}
+
+			// clone repository
+			gitClone(m.Source, m.Version, key, cloneDestination)
+
+			for _, d := range linkDestinations {
+				// the source location as folder where module was cloned and module folder name
+				moduleSrc := filepath.Join(workDirAbsolutePath, cloneDestination, key)
+				// append destination path with module path
+				dst := filepath.Join(d, opts.ModulePath)
+
+				log.Infof("[*] Creating folder %s", dst)
+				if err := os.MkdirAll(dst, os.ModePerm); err != nil {
+					log.Errorf("failed to create folder %s due to error: %s", dst, err)
+					return
+				}
+
+				dst = filepath.Join(dst, key)
+
+				log.Infof("[*] Remove existing artifacts at %s", dst)
+				if err := os.RemoveAll(dst); err != nil {
+					log.Errorf("failed to remove location %s due to error: %s", dst, err)
+					return
+				}
+
+				log.Infof("[*] Link %s to %s", moduleSrc, dst)
+				if err := os.Symlink(moduleSrc, dst); err != nil {
+					log.Errorf("failed to link module from %s to %s due to error: %s", moduleSrc, dst, err)
+				}
+			}
 		}(mod, key)
 	}
 

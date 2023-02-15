@@ -13,8 +13,10 @@
 
 # Terrafile output
 vendor/modules
+testdata
 terrafile
 
 #IDEs
 .idea/
 dist/
+.DS_Store
