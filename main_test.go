@@ -50,13 +50,24 @@ func TestTerraformWithTerrafilePath(t *testing.T) {
 		assert.NoError(t, os.RemoveAll("testdata/"))
 	}()
 
+	defer println(testcli.Stdout())
+	defer println(testcli.Stderr())
+
+	defer func() {
+		assert.NoError(t, os.RemoveAll("testdata/"))
+	}()
+
 	if !testcli.Success() {
 		t.Fatalf("Expected to succeed, but failed: %q with message: %q", testcli.Error(), testcli.Stderr())
 	}
 	// Assert output
 	for _, output := range []string{
 		"Checking out master of git@github.com:terraform-aws-modules/terraform-aws-vpc",
+		"Checking out master of git@github.com:terraform-aws-modules/terraform-aws-vpc",
 		"Checking out v1.46.0 of git@github.com:terraform-aws-modules/terraform-aws-vpc",
+		"Checking out v3.2.0 of git@github.com:terraform-aws-modules/terraform-aws-vpn-gateway",
+		"Checking out v3.6.1 of git@github.com:terraform-aws-modules/terraform-aws-s3-bucket",
+		"Checking out v5.11.1 of git@github.com:terraform-aws-modules/terraform-aws-iam",
 		"Checking out v3.2.0 of git@github.com:terraform-aws-modules/terraform-aws-vpn-gateway",
 		"Checking out v3.6.1 of git@github.com:terraform-aws-modules/terraform-aws-s3-bucket",
 		"Checking out v5.11.1 of git@github.com:terraform-aws-modules/terraform-aws-iam",
@@ -97,11 +108,39 @@ func TestTerraformWithTerrafilePath(t *testing.T) {
 	}
 
 	// Assert files exist with default destination
+	// Assert folder exist with non-default destinations
+	for _, moduleName := range []string{
+		"testdata/networking/vendor/modules/tf-aws-vpn-gateway/",
+		"testdata/networking/vendor/modules/tf-aws-s3-bucket/",
+		"testdata/iam/vendor/modules/tf-aws-iam/",
+
+		// Symlinks are not Dirs. But contents will be tested later on
+		// "testdata/onboarding/vendor/modules/tf-aws-s3-bucket/",
+		// "testdata/some-other-stack/vendor/modules/tf-aws-s3-bucket/",
+	} {
+		assert.DirExists(t, path.Join(workingDirectory, moduleName))
+	}
+
+	// Assert files exist with default destination
 	for _, moduleName := range []string{
 		"tf-aws-vpc/main.tf",
 		"tf-aws-vpc-experimental/main.tf",
 	} {
 		assert.FileExists(t, path.Join(workingDirectory, "vendor/modules", moduleName))
+	}
+
+	// Assert files exist with non-default destinations
+	for _, moduleName := range []string{
+		"testdata/networking/vendor/modules/tf-aws-vpn-gateway/main.tf",
+		"testdata/networking/vendor/modules/tf-aws-s3-bucket/main.tf",
+
+		// terraform-aws-modules/terraform-aws-iam doesn't have main.tf, as it represents set of modules
+		// However, some terraform-aws-modules/terraform-aws-iam/modules have, e.g.:
+		"testdata/iam/vendor/modules/tf-aws-iam/modules/iam-account/main.tf",
+		"testdata/onboarding/vendor/modules/tf-aws-s3-bucket/main.tf",
+		"testdata/some-other-stack/vendor/modules/tf-aws-s3-bucket/main.tf",
+	} {
+		assert.FileExists(t, path.Join(workingDirectory, moduleName))
 	}
 
 	// Assert files exist with non-default destinations
@@ -186,82 +225,8 @@ func TestTerraformWithTerrafilePath(t *testing.T) {
 	}
 }
 
-func TestTerraformWithTerrafileClean(t *testing.T) {
-	folder, back := setup(t)
-	defer back()
-
-	// Run original Terrafile with path
-	testcli.Run(terrafileBinaryPath, "-f", fmt.Sprint(folder, "/Terrafile"))
-
-	defer println(testcli.Stdout())
-	defer println(testcli.Stderr())
-
-	defer func() {
-		assert.NoError(t, os.RemoveAll("testdata/"))
-	}()
-
-	// Create Terrafile2.yaml
-	createTerrafile2(t, folder)
-
-	// Run terrafile with path to Terrafile2 and clean flag
-	testcli.Run(terrafileBinaryPath, "-f", fmt.Sprint(folder, "/Terrafile2"), "-c")
-
-	// Print out output of second run
-	defer println(testcli.Stdout())
-	defer println(testcli.Stderr())
-
-	if !testcli.Success() {
-		t.Fatalf("Expected to succeed, but failed: %q with message: %q", testcli.Error(), testcli.Stderr())
-	}
-
-	// Assert output
-	for _, output := range []string{
-		"[*] Removing artifacts from ./vendor/modules",
-		"[*] Removing artifacts from testdata/networking/vendor/modules",
-		"[*] Removing artifacts from testdata/some-other-stack/vendor/modules",
-		"[*] Removing artifacts from testdata/iam/vendor/modules",
-		"[*] Removing artifacts from testdata/onboarding/vendor/modules",
-	} {
-		assert.Contains(t, testcli.Stdout(), output)
-	}
-
-	// Assert files exist with default destination
-	for _, moduleName := range []string{
-		"tf-aws-vpc/main.tf",
-	} {
-		assert.FileExists(t, path.Join(workingDirectory, "vendor/modules", moduleName))
-	}
-
-	// Assert files does not exist with default destination
-	for _, moduleName := range []string{
-		"tf-aws-vpc-experimental/main.tf",
-	} {
-		assert.NoFileExists(t, path.Join(workingDirectory, "vendor/modules", moduleName))
-	}
-
-	// Assert files exist with non-default destinations
-	for _, moduleName := range []string{
-		"testdata/networking/vendor/modules/tf-aws-vpn-gateway/main.tf",
-
-		// terraform-aws-modules/terraform-aws-iam doesn't have main.tf, as it represents set of modules
-		// However, some terraform-aws-modules/terraform-aws-iam/modules have, e.g.:
-		"testdata/iam/vendor/modules/tf-aws-iam/modules/iam-account/main.tf",
-		"testdata/onboarding/vendor/modules/tf-aws-s3-bucket/main.tf",
-		"testdata/some-other-stack/vendor/modules/tf-aws-vpn-gateway/main.tf",
-	} {
-		assert.FileExists(t, path.Join(workingDirectory, moduleName))
-	}
-
-	// Assert files do not exist with non-default destinations
-	for _, moduleName := range []string{
-		"testdata/networking/vendor/modules/tf-aws-s3-bucket/main.tf",
-		"testdata/some-other-stack/vendor/modules/tf-aws-s3-bucket/main.tf",
-	} {
-		assert.NoFileExists(t, path.Join(workingDirectory, moduleName))
-	}
-}
-
 func setup(t *testing.T) (current string, back func()) {
+	folder, err := os.MkdirTemp("", "")
 	folder, err := os.MkdirTemp("", "")
 	assert.NoError(t, err)
 	createTerrafile(t, folder)
@@ -272,6 +237,7 @@ func setup(t *testing.T) (current string, back func()) {
 
 func createFile(t *testing.T, filename string, contents string) {
 	assert.NoError(t, os.WriteFile(filename, []byte(contents), 0644))
+	assert.NoError(t, os.WriteFile(filename, []byte(contents), 0644))
 }
 
 func createTerrafile(t *testing.T, folder string) {
@@ -281,6 +247,23 @@ func createTerrafile(t *testing.T, folder string) {
 tf-aws-vpc-experimental:
   source:  "git@github.com:terraform-aws-modules/terraform-aws-vpc"
   version: "master"
+tf-aws-vpn-gateway:
+  source:  "git@github.com:terraform-aws-modules/terraform-aws-vpn-gateway"
+  version: "v3.2.0"
+  destinations:
+    - testdata/networking
+tf-aws-iam:
+  source:  "git@github.com:terraform-aws-modules/terraform-aws-iam"
+  version: "v5.11.1"
+  destinations:
+    - testdata/iam
+tf-aws-s3-bucket:
+  source:  "git@github.com:terraform-aws-modules/terraform-aws-s3-bucket"
+  version: "v3.6.1"
+  destinations:
+    - testdata/networking
+    - testdata/onboarding
+    - testdata/some-other-stack
 tf-aws-vpn-gateway:
   source:  "git@github.com:terraform-aws-modules/terraform-aws-vpn-gateway"
   version: "v3.2.0"

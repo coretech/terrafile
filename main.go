@@ -33,6 +33,9 @@ type module struct {
 	Source       string   `yaml:"source"`
 	Version      string   `yaml:"version"`
 	Destinations []string `yaml:"destinations"`
+	Source       string   `yaml:"source"`
+	Version      string   `yaml:"version"`
+	Destinations []string `yaml:"destinations"`
 }
 
 var opts struct {
@@ -59,7 +62,7 @@ func gitClone(repository string, version string, moduleName string, destinationD
 	cleanupPath := filepath.Join(destinationDir, moduleName)
 	log.Printf("[*] Removing previously cloned artifacts at %s", cleanupPath)
 	os.RemoveAll(cleanupPath)
-	log.Printf("[*] Checking out %s of %s", version, repository)
+	log.Printf("[*] Checking out %s of %s \n", version, repository)
 	cmd := exec.Command("git", "clone", "--single-branch", "--depth=1", "-b", version, repository, moduleName)
 	cmd.Dir = destinationDir
 	if err := cmd.Run(); err != nil {
