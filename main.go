@@ -105,7 +105,7 @@ func main() {
 
 			// path to clone module
 			cloneDestination := opts.ModulePath
-			// list of paths to link module to. empty, uless Destinations are more than 1 location
+			// list of paths to link module to. empty, unless Destinations are more than 1 location
 			var linkDestinations []string
 
 			if m.Destinations != nil && len(m.Destinations) > 0 {
