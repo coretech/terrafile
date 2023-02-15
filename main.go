@@ -33,9 +33,6 @@ type module struct {
 	Source       string   `yaml:"source"`
 	Version      string   `yaml:"version"`
 	Destinations []string `yaml:"destinations"`
-	Source       string   `yaml:"source"`
-	Version      string   `yaml:"version"`
-	Destinations []string `yaml:"destinations"`
 }
 
 var opts struct {
