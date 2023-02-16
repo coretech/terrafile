@@ -40,7 +40,7 @@ var opts struct {
 
 	TerrafilePath string `short:"f" long:"terrafile_file" default:"./Terrafile" description:"File path to the Terrafile file"`
 
-	Clean bool `short:"c" long:"clean" description:"Remove all artifacts from destinations and module path upon fetching module(s)"`
+	Clean bool `short:"c" long:"clean" description:"Remove everything from destinations and module path upon fetching module(s)\n !!! WARNING !!! Removes all files and folders in the destinations including non-modules."`
 }
 
 // To be set by goreleaser on build
@@ -96,7 +96,7 @@ func main() {
 	}
 
 	if opts.Clean {
-		cleanDestinations(getUniqueDestinations(config))
+		cleanDestinations(config)
 	}
 
 	// Clone modules
@@ -164,7 +164,7 @@ func main() {
 	wg.Wait()
 }
 
-func getUniqueDestinations(config map[string]module) []string {
+func cleanDestinations(config map[string]module) {
 
 	// Map filters duplicate destinations with key being each destination's file path
 	uniqueDestinations := make(map[string]bool)
@@ -172,7 +172,7 @@ func getUniqueDestinations(config map[string]module) []string {
 	// Range over config and gather all unique destinations
 	for _, m := range config {
 		if len(m.Destinations) == 0 {
-			uniqueDestinationsM[opts.ModulePath] = true
+			uniqueDestinations[opts.ModulePath] = true
 			continue
 		}
 
@@ -180,22 +180,11 @@ func getUniqueDestinations(config map[string]module) []string {
 		for _, dst := range m.Destinations {
 			// Destination supposed to be conjunction of destination defined in file with module path
 			d := filepath.Join(dst, opts.ModulePath)
-			uniqueDestinationsM[d] = d
+			uniqueDestinations[d] = true
 		}
 	}
 
-	uniqueDestinations := make([]string, len(uniqueDestinationsM))
-	i := 0
-	for dst := range uniqueDestinationsM {
-		uniqueDestinations[i] = dst
-		i++
-	}
-
-	return uniqueDestinations
-}
-
-func cleanDestinations(destinations []string) {
-	for _, dst := range destinations {
+	for dst := range uniqueDestinations {
 
 		log.Infof("[*] Removing artifacts from %s", dst)
 		if err := os.RemoveAll(dst); err != nil {
