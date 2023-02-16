@@ -120,11 +120,11 @@ func TestTerraformWithTerrafilePath(t *testing.T) {
 
 	// Assert checked out correct version
 	for moduleName, cloneOptions := range map[string]map[string]string{
-		"tf-aws-vpc": map[string]string{
+		"tf-aws-vpc": {
 			"repository": "git@github.com:terraform-aws-modules/terraform-aws-vpc",
 			"version":    "v1.46.0",
 		},
-		"tf-aws-vpc-experimental": map[string]string{
+		"tf-aws-vpc-experimental": {
 			"repository": "git@github.com:terraform-aws-modules/terraform-aws-vpc",
 			"version":    "master",
 		},

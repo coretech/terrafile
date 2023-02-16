@@ -58,7 +58,7 @@ func init() {
 func gitClone(repository string, version string, moduleName string, destinationDir string) {
 	cleanupPath := filepath.Join(destinationDir, moduleName)
 	log.Printf("[*] Removing previously cloned artifacts at %s", cleanupPath)
-	os.RemoveAll(cleanupPath)
+	_ = os.RemoveAll(cleanupPath)
 	log.Printf("[*] Checking out %s of %s \n", version, repository)
 	cmd := exec.Command("git", "clone", "--single-branch", "--depth=1", "-b", version, repository, moduleName)
 	cmd.Dir = destinationDir
