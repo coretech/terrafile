@@ -39,6 +39,8 @@ var opts struct {
 	ModulePath string `short:"p" long:"module_path" default:"./vendor/modules" description:"File path to install generated terraform modules, if not overridden by 'destinations:' field"`
 
 	TerrafilePath string `short:"f" long:"terrafile_file" default:"./Terrafile" description:"File path to the Terrafile file"`
+
+	Clean bool `short:"c" long:"clean" description:"Remove everything from destinations and module path upon fetching module(s)\n !!! WARNING !!! Removes all files and folders in the destinations including non-modules."`
 }
 
 // To be set by goreleaser on build
@@ -91,6 +93,10 @@ func main() {
 	var config map[string]module
 	if err := yaml.Unmarshal(yamlFile, &config); err != nil {
 		log.Fatalf("failed to parse yaml file due to error: %s", err)
+	}
+
+	if opts.Clean {
+		cleanDestinations(config)
 	}
 
 	// Clone modules
@@ -156,4 +162,33 @@ func main() {
 	}
 
 	wg.Wait()
+}
+
+func cleanDestinations(config map[string]module) {
+
+	// Map filters duplicate destinations with key being each destination's file path
+	uniqueDestinations := make(map[string]bool)
+
+	// Range over config and gather all unique destinations
+	for _, m := range config {
+		if len(m.Destinations) == 0 {
+			uniqueDestinations[opts.ModulePath] = true
+			continue
+		}
+
+		// range over Destinations and put them into map
+		for _, dst := range m.Destinations {
+			// Destination supposed to be conjunction of destination defined in file with module path
+			d := filepath.Join(dst, opts.ModulePath)
+			uniqueDestinations[d] = true
+		}
+	}
+
+	for dst := range uniqueDestinations {
+
+		log.Infof("[*] Removing artifacts from %s", dst)
+		if err := os.RemoveAll(dst); err != nil {
+			log.Errorf("Failed to remove artifacts from %s due to error: %s", dst, err)
+		}
+	}
 }
