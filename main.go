@@ -166,13 +166,13 @@ func main() {
 
 func getUniqueDestinations(config map[string]module) []string {
 
-	// Map filters duplicates
-	uniqueDestinationsM := make(map[string]string)
+	// Map filters duplicate destinations with key being each destination's file path
+	uniqueDestinations := make(map[string]bool)
 
-	// Range over config and gather all uniquieDestinations
+	// Range over config and gather all unique destinations
 	for _, m := range config {
 		if len(m.Destinations) == 0 {
-			uniqueDestinationsM[opts.ModulePath] = opts.ModulePath
+			uniqueDestinationsM[opts.ModulePath] = true
 			continue
 		}
 
